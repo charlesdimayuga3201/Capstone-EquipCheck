@@ -12,6 +12,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Dropdown } from "react-native-element-dropdown";
 import { useFonts } from "expo-font";
+
 // export default function App() {
 //   return (
 //     <View style={styles.container}>

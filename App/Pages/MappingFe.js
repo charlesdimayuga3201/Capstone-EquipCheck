@@ -3,15 +3,32 @@ import {
   StyleSheet,
   View,
   Image,
-  ImageBackground,
-  TouchableOpacity,
   Text,
+  Switch,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  ImageBackground,
 } from "react-native";
-import EntypoIcon from "react-native-vector-icons/Entypo";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Dropdown } from "react-native-element-dropdown";
 import { Picker } from "@react-native-picker/picker";
 import { Table, TableWrapper, Row, Cell } from "react-native-table-component";
+import { StatusBar } from "expo-status-bar";
+import {
+  QuerySnapshot,
+  doc,
+  getDocs,
+  collection,
+  todoRef,
+  query,
+  orderBy,
+  limit,
+  where,
+  addDoc,
+} from "firebase/firestore";
+import { firebase } from "../../firebaseConfig";
+import Icon from "react-native-vector-icons/Ionicons";
 import MaterialIconsIcon from "react-native-vector-icons/MaterialIcons";
 
 const data1 = [
@@ -40,10 +57,21 @@ const data3 = [
   { label: "E7", value: "7" },
   { label: "E8", value: "8" },
 ];
-function MappingFp1(props) {
+function MappingFe(props) {
   const [value1, setValue1] = useState(null);
   const [value2, setValue2] = useState(null);
   const [value3, setValue3] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [buttonOpacity, setButtonOpacity] = useState(1);
+  const showModal = () => {
+    setIsModalVisible(true);
+    setButtonOpacity(0.5); // Change opacity when modal is shown
+  };
+
+  const hideModal = () => {
+    setIsModalVisible(false);
+    setButtonOpacity(1); // Restore opacity when modal is hidden
+  };
   return (
     <View style={styles.container}>
       <View style={styles.group}>
@@ -130,9 +158,52 @@ function MappingFp1(props) {
           style={styles.image1}
           imageStyle={styles.image1_imageStyle}
         >
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isModalVisible}
+            onRequestClose={hideModal}
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                {/* <View style={styles.lineG}></View> */}
+                <View style={styles.checkicon}>
+                  <Icon
+                    name="ios-checkmark-circle-outline"
+                    style={styles.check}
+                  ></Icon>
+                </View>
+                <Text style={styles.modalText}>Confirm Update?</Text>
+                <Text style={styles.modalText1}>
+                  Do you really want to update this equipment? {"\n"}
+                  This process cannot be undone.
+                </Text>
+                <View style={styles.line}></View>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.modalButtonY}
+                    onPress={() => {
+                      // Handle "Yes" button press here
+                      hideModal();
+                      // Add your update logic here
+                    }}
+                  >
+                    <Text style={styles.buttonText}>Yes</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.modalButtonN}
+                    onPress={hideModal}
+                  >
+                    <Text style={styles.buttonText}>No</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+
           <View style={styles.button12ColumnRow}>
             <View style={styles.button12Column}>
-              <TouchableOpacity style={styles.button12}>
+              <TouchableOpacity style={styles.button12} onPress={showModal}>
                 <View style={styles.indicator1StackStack}>
                   <View style={styles.indicator1Stack}>
                     <View style={styles.indicator1}></View>
@@ -309,6 +380,78 @@ function MappingFp1(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  checkicon: {
+    width: 150,
+    height: 150,
+    marginVertical: 35,
+  },
+  check: {
+    color: "rgba(128,214,126,1)",
+    fontSize: 155,
+  },
+  line: {
+    top: 10,
+    height: 2,
+    width: "100%",
+    backgroundColor: "#B4B4B3",
+    // borderBottomWidth: 2,
+
+    // borderBottomColor: "red", // You can change the color of the line
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    // backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    elevation: 8,
+    borderRadius: 10,
+    alignItems: "center",
+    width: "40%", // Adjust the width as needed
+    height: "60%", // Adjust the height as needed
+  },
+  modalText1: {
+    color: "#7D7C7C",
+    fontSize: 20,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  modalText: {
+    color: "#454545",
+    fontWeight: "500",
+    fontSize: 20,
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    marginTop: 35,
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  modalButtonY: {
+    width: "35%",
+    // elevation: 4,
+    backgroundColor: "#7FCD91",
+    padding: 20,
+    borderRadius: 5,
+    marginHorizontal: 20,
+    alignItems: "center",
+  },
+  modalButtonN: {
+    width: "35%",
+    // elevation: 4,
+    backgroundColor: "#FF6464",
+    padding: 20,
+    borderRadius: 5,
+    marginHorizontal: 20,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "900",
+    fontFamily: "poppins-bold",
   },
   container1: {
     top: 0,
@@ -1046,4 +1189,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MappingFp1;
+export default MappingFe;

@@ -22,7 +22,9 @@ import Mapping from "../Pages/Mapping";
 import Bottomtabs from "../Custom/Bottomtabs";
 import AppNavigator from "../Custom/AppNavigator";
 import AppNavigator1 from "../Custom/AppNavigator1";
-import ViewFe from "../Pages/ViewFe";
+import AppNavigator2 from "../Custom/AppNavigator2";
+import AppNavigator4 from "../Custom/AppNavigator4";
+import Setting from "../Pages/Setting";
 import Login from "../Pages/Login";
 import { StatusBar } from "expo-status-bar";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
@@ -57,7 +59,7 @@ export default function Drawermenu() {
   return (
     <NavigationContainer independent={true}>
       <Drawer.Navigator
-        initialRouteName="Mapping"
+        initialRouteName="MappingFe"
         drawerContent={(props) => {
           return (
             <SafeAreaView>
@@ -65,15 +67,23 @@ export default function Drawermenu() {
                 source={require("../assets/images/menu-bg9.png")}
                 style={{ padding: 20 }}
               >
-                <Image
-                  source={require("../assets/images/user-profile.jpg")}
-                  style={{
-                    height: 80,
-                    width: 80,
-                    borderRadius: 40,
-                    marginBottom: 10,
-                  }}
-                />
+                <TouchableOpacity>
+                  <View style={{ alignSelf: "flex-end" }}>
+                    <FeatherIcon name="bell" size={22} color="white" />
+                  </View>
+                </TouchableOpacity>
+                <View style={{ flexDirection: "row" }}>
+                  <Image
+                    source={require("../assets/images/user-profile.jpg")}
+                    style={{
+                      height: 100,
+                      width: 100,
+                      borderRadius: 40,
+                      marginBottom: 10,
+                      alignSelf: "center",
+                    }}
+                  />
+                </View>
                 <Text
                   style={{
                     color: "#fff",
@@ -84,9 +94,11 @@ export default function Drawermenu() {
                 >
                   EMU
                 </Text>
+
                 <View style={{ flexDirection: "row" }}>
                   <Text
                     style={{
+                      textAlign: "center",
                       fontSize: 16,
                       color: "#fff",
                       fontFamily: "poppins-regular",
@@ -147,7 +159,7 @@ export default function Drawermenu() {
         }}
       >
         <Drawer.Screen
-          name="Mapping"
+          name="MappingFe"
           options={{
             drawerLabel: "Mapping",
             title: null,
@@ -159,7 +171,7 @@ export default function Drawermenu() {
               ></FeatherIcon>
             ),
           }}
-          component={Mapping}
+          component={AppNavigator4}
         />
         <Drawer.Screen
           style={{ position: "absolute", bottom: 16, right: 16 }}
@@ -202,7 +214,7 @@ export default function Drawermenu() {
               <FeatherIcon name="clock" size={20} color="#808080"></FeatherIcon>
             ),
           }}
-          component={Mapping}
+          component={AppNavigator2}
         />
         <Drawer.Screen
           name="Settings"
@@ -217,7 +229,7 @@ export default function Drawermenu() {
               ></FeatherIcon>
             ),
           }}
-          component={Mapping}
+          component={Setting}
         />
       </Drawer.Navigator>
     </NavigationContainer>

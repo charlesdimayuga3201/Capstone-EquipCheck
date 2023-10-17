@@ -2,9 +2,9 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import Mapping from "../Pages/Mapping";
 import Bottomtabs from "../Custom/Bottomtabs";
-import ViewS from "../Pages/ViewS";
-import ViewFe from "../Pages/ViewFe";
-import ViewSd from "../Pages/ViewSd";
+import MappingS from "../Pages/MappingS";
+import MappingFe from "../Pages/MappingFe";
+import MappingSd from "../Pages/MappingSd";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Icon from "react-native-vector-icons/Ionicons"; // You can use any icon library you prefer
@@ -21,7 +21,7 @@ const AppNavigator = () => {
     <NavigationContainer independent={true}>
       {/* <View styles={styles.container}> */}
       <Tab.Navigator
-        initialRouteName="FireExinguisher"
+        initialRouteName="MappingFe"
         screenOptions={({ route }) => ({
           headerShown: false,
 
@@ -46,7 +46,7 @@ const AppNavigator = () => {
               // borderRadius: 100,
               // width: "60%",
               // left: "23%",
-
+              // height: 70,
               elevation: 5,
               borderTopWidth: 0,
               backgroundColor: "white",
@@ -57,7 +57,7 @@ const AppNavigator = () => {
       >
         <Tab.Screen
           name="FireExinguisher"
-          component={ViewFe}
+          component={MappingFe}
           options={{
             title: null,
             tabBarLabel: "Fire Extinguisher", // Tab label
@@ -68,7 +68,7 @@ const AppNavigator = () => {
         />
         <Tab.Screen
           name="Sprinkler"
-          component={ViewS}
+          component={MappingS}
           options={{
             title: null,
             tabBarLabel: "Sprinkler",
@@ -79,7 +79,7 @@ const AppNavigator = () => {
         />
         <Tab.Screen
           name="SmokeDetector"
-          component={ViewSd}
+          component={MappingSd}
           options={{
             title: null,
             tabBarLabel: "Smoke Detector",

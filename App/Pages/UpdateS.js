@@ -102,7 +102,7 @@ function UpdateS(props) {
             }}
           >
             {" "}
-            VIEW EQUIPMENT INFORMATION
+            UPDATE EQUIPMENT INFORMATION
           </Text>
         </View>
 

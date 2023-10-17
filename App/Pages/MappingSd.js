@@ -40,7 +40,7 @@ const data3 = [
   { label: "E7", value: "7" },
   { label: "E8", value: "8" },
 ];
-function MappingFp1(props) {
+function MappingSd(props) {
   const [value1, setValue1] = useState(null);
   const [value2, setValue2] = useState(null);
   const [value3, setValue3] = useState(null);
@@ -1046,4 +1046,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MappingFp1;
+export default MappingSd;

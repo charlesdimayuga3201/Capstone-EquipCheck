@@ -98,7 +98,7 @@ function UpdateSd(props) {
             }}
           >
             {" "}
-            VIEW EQUIPMENT INFORMATION
+            UPDATE EQUIPMENT INFORMATION
           </Text>
         </View>
 

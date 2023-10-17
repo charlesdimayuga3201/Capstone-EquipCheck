@@ -2,9 +2,6 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import Mapping from "../Pages/Mapping";
 import Bottomtabs from "../Custom/Bottomtabs";
-import ViewS from "../Pages/ViewS";
-import ViewFe from "../Pages/ViewFe";
-import ViewSd from "../Pages/ViewSd";
 import UpdateS from "../Pages/UpdateS";
 import UpdateFe from "../Pages/UpdateFe";
 import UpdateSd from "../Pages/UpdateSd";
@@ -24,7 +21,7 @@ const AppNavigator = () => {
     <NavigationContainer independent={true}>
       {/* <View styles={styles.container}> */}
       <Tab.Navigator
-        initialRouteName="FireExinguisher"
+        initialRouteName="UpdateFe"
         screenOptions={({ route }) => ({
           headerShown: false,
 
@@ -37,11 +34,11 @@ const AppNavigator = () => {
           tabBarStyle: [
             {
               position: "absolute",
-              bottom: 10,
-              borderRadius: 100,
-              width: "60%",
-              left: "23%",
-              height: 70,
+              // bottom: 10,
+              // borderRadius: 100,
+              // width: "60%",
+              // left: "23%",
+              // height: 70,
               elevation: 5,
               borderTopWidth: 0,
               backgroundColor: "white",
