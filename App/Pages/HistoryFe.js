@@ -1,41 +1,164 @@
-import React, { Component, useState } from "react";
-import { StyleSheet, View, Image, Text } from "react-native";
+import React, { Component, useState, useEffect } from "react";
+import {
+  StyleSheet,
+  View,
+  Image,
+  Text,
+  FlatList,
+  ScrollView,
+} from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Dropdown } from "react-native-element-dropdown";
 import { Picker } from "@react-native-picker/picker";
 import { Table, TableWrapper, Row, Cell } from "react-native-table-component";
+import {
+  QuerySnapshot,
+  doc,
+  getDocs,
+  collection,
+  todoRef,
+  query,
+  orderBy,
+  limit,
+  where,
+} from "firebase/firestore";
+import { firebase } from "../../firebaseConfig";
+import FeFetch from "./FeFetch";
+import Icon from "react-native-vector-icons/Ionicons";
 
-const data1 = [
-  { label: "CICS", value: "1" },
-  { label: "CEAFA", value: "2" },
-  { label: "GYM", value: "3" },
-  { label: "CIT", value: "4" },
-  { label: "SSC", value: "5" },
-];
-
-const data2 = [
-  { label: "1st Floor", value: "1" },
-  { label: "2nd Floor", value: "2" },
-  { label: "3rd Floor", value: "3" },
-  { label: "4th Floor", value: "4" },
-  { label: "5Th Floor", value: "5" },
-];
-
-const data3 = [
-  { label: "E1", value: "1" },
-  { label: "E2", value: "2" },
-  { label: "E3", value: "3" },
-  { label: "E4", value: "4" },
-  { label: "E5", value: "5" },
-  { label: "E6", value: "6" },
-  { label: "E7", value: "7" },
-  { label: "E8", value: "8" },
-];
 function HistoryFe(props) {
   const [value1, setValue1] = useState(null);
   const [value2, setValue2] = useState(null);
   const [value3, setValue3] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
+  const [selectedBuilding, setSelectedBuilding] = useState(null);
+  const [selectedFloor, setSelectedFloor] = useState(null);
+  const [selectedSafetyEquipment, setSelectedSafetyEquipment] = useState(null);
+
+  const [buildingOptions, setBuildingOptions] = useState([]);
+  const [floorOptions, setFloorOptions] = useState([]);
+  const [safetyEquipmentOptions, setSafetyEquipmentOptions] = useState([]);
+
+  useEffect(() => {
+    // Fetch building options from Firebase
+    const fetchBuildingOptions = async () => {
+      const Buildings = [];
+      const q = collection(firebase, "ListFireExtinguisher");
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (
+          data.building &&
+          !Buildings.some((item) => item.value === data.building)
+        ) {
+          Buildings.push({ label: data.building, value: data.building });
+        }
+      });
+
+      setBuildingOptions(Buildings);
+    };
+
+    fetchBuildingOptions();
+  }, []);
+
+  useEffect(() => {
+    // Fetch floor options from Firebase based on the selected building
+    const fetchFloorOptions = async () => {
+      if (!selectedBuilding) {
+        return; // No need to fetch if building is not selected yet
+      }
+
+      const Floors = [];
+      const q = query(
+        collection(firebase, "ListFireExtinguisher"),
+        where("building", "==", selectedBuilding)
+      );
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.floor && !Floors.some((item) => item.value === data.floor)) {
+          Floors.push({ label: data.floor, value: data.floor });
+        }
+      });
+
+      setFloorOptions(Floors);
+    };
+
+    fetchFloorOptions();
+  }, [selectedBuilding]);
+
+  useEffect(() => {
+    // Fetch safety equipment options from Firebase based on the selected building and floor
+    const fetchSafetyEquipmentOptions = async () => {
+      if (!selectedBuilding || !selectedFloor) {
+        return; // No need to fetch if building or floor is not selected yet
+      }
+
+      const IDOptions = [];
+      const q = query(
+        collection(firebase, "ListFireExtinguisher"),
+        where("building", "==", selectedBuilding),
+        where("floor", "==", selectedFloor)
+      );
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.id && !IDOptions.some((item) => item.value === data.id)) {
+          IDOptions.push({ label: data.id, value: data.id });
+        }
+      });
+
+      setSafetyEquipmentOptions(IDOptions);
+    };
+
+    fetchSafetyEquipmentOptions();
+  }, [selectedBuilding, selectedFloor]);
+
+  const safetyEquipmentCollections = {
+    FE1: collection(firebase, "E1"),
+    FE2: collection(firebase, "E2"),
+    FE3: collection(firebase, "E3"),
+    // Add more options as needed
+  };
+
+  const [safetyEquipmentData, setSafetyEquipmentData] = useState([]);
+  useEffect(() => {
+    const fetchSafetyEquipmentData = async () => {
+      if (!selectedSafetyEquipment) {
+        return; // No need to fetch if safety equipment is not selected yet
+      }
+
+      const equipmentData = [];
+      const selectedCollection =
+        safetyEquipmentCollections[selectedSafetyEquipment];
+      if (!selectedCollection) {
+        console.error(`Collection not found for ${selectedSafetyEquipment}`);
+        return;
+      }
+
+      const q = query(
+        selectedCollection,
+        where("id", "==", selectedSafetyEquipment),
+        orderBy("date", "desc"),
+        orderBy("time", "desc")
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        equipmentData.push(data);
+      });
+
+      setSafetyEquipmentData(equipmentData);
+      console.log(equipmentData);
+    };
+
+    fetchSafetyEquipmentData();
+  }, [selectedSafetyEquipment]);
 
   return (
     <View style={styles.container}>
@@ -79,16 +202,18 @@ function HistoryFe(props) {
               selectedTextStyle={styles.selectedTextStyle}
               inputSearchStyle={styles.inputSearchStyle}
               iconStyle={styles.iconStyle}
-              data={data1}
+              data={buildingOptions}
               search
               maxHeight={300}
               labelField="label"
               valueField="value"
               placeholder="Select item"
               searchPlaceholder="Search..."
-              value={value1}
+              value={selectedBuilding}
               onChange={(item) => {
-                setValue1(item.value);
+                setSelectedBuilding(item.value);
+                setSelectedFloor(null);
+                setSelectedSafetyEquipment(null);
               }}
             />
           </View>
@@ -100,16 +225,17 @@ function HistoryFe(props) {
               selectedTextStyle={styles.selectedTextStyle}
               inputSearchStyle={styles.inputSearchStyle}
               iconStyle={styles.iconStyle}
-              data={data2}
+              data={floorOptions}
               search
               maxHeight={300}
               labelField="label"
               valueField="value"
               placeholder="Select item"
               searchPlaceholder="Search..."
-              value={value2}
+              value={selectedFloor}
               onChange={(item) => {
-                setValue2(item.value);
+                setSelectedFloor(item.value);
+                setSelectedSafetyEquipment(null);
               }}
             />
           </View>
@@ -121,16 +247,16 @@ function HistoryFe(props) {
               selectedTextStyle={styles.selectedTextStyle}
               inputSearchStyle={styles.inputSearchStyle}
               iconStyle={styles.iconStyle}
-              data={data3}
+              data={safetyEquipmentOptions}
               search
               maxHeight={300}
               labelField="label"
               valueField="value"
               placeholder="Select item"
               searchPlaceholder="Search..."
-              value={value3}
+              value={selectedSafetyEquipment}
               onChange={(item) => {
-                setValue3(item.value);
+                setSelectedSafetyEquipment(item.value);
               }}
             />
           </View>
@@ -179,12 +305,99 @@ function HistoryFe(props) {
             <Text style={styles.datafont}>Inspected By</Text>
           </View>
         </View>
+
+        {/* Third container */}
+        <ScrollView style={{ flex: 1 }}>
+          <View style={styles.container3}>
+            <View style={styles.column1}>
+              {safetyEquipmentData.map((item, index) => (
+                <Text key={index} style={styles.datafont1}>
+                  {item.date}
+                </Text>
+              ))}
+            </View>
+
+            <View style={styles.column1}>
+              {safetyEquipmentData.map((item, index) => (
+                <Text key={index} style={styles.datafont1}>
+                  {item.time}
+                </Text>
+              ))}
+            </View>
+            <View style={styles.column1}>
+              {safetyEquipmentData.map((item, index) => (
+                <Text key={index} style={styles.datafont1}>
+                  {item.nozzle === "check" ? (
+                    // Use Ionicons for the check icon
+                    <Icon name="checkmark-circle" size={24} color="green" />
+                  ) : (
+                    // Use Ionicons for the close icon
+                    <Icon name="close-circle" size={24} color="red" />
+                  )}
+                </Text>
+              ))}
+            </View>
+            <View style={styles.column1}>
+              {safetyEquipmentData.map((item, index) => (
+                <Text key={index} style={styles.datafont1}>
+                  {item.gauge === "check" ? (
+                    // Use Ionicons for the check icon
+                    <Icon name="checkmark-circle" size={24} color="green" />
+                  ) : (
+                    // Use Ionicons for the close icon
+                    <Icon name="close-circle" size={24} color="red" />
+                  )}
+                </Text>
+              ))}
+            </View>
+            <View style={styles.column1}>
+              {safetyEquipmentData.map((item, index) => (
+                <Text key={index} style={styles.datafont1}>
+                  {item.pinlock === "check" ? (
+                    // Use Ionicons for the check icon
+                    <Icon name="checkmark-circle" size={24} color="green" />
+                  ) : (
+                    // Use Ionicons for the close icon
+                    <Icon name="close-circle" size={24} color="red" />
+                  )}
+                </Text>
+              ))}
+            </View>
+            <View style={styles.column1}>
+              {safetyEquipmentData.map((item, index) => (
+                <Text key={index} style={styles.datafont1}>
+                  {item.body === "check" ? (
+                    // Use Ionicons for the check icon
+                    <Icon name="checkmark-circle" size={24} color="green" />
+                  ) : (
+                    // Use Ionicons for the close icon
+                    <Icon name="close-circle" size={24} color="red" />
+                  )}
+                </Text>
+              ))}
+            </View>
+            <View style={styles.column1}>
+              {safetyEquipmentData.map((item, index) => (
+                <Text key={index} style={styles.datafont1}>
+                  {item.inspected}
+                </Text>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  datafont1: {
+    fontSize: 17,
+    fontFamily: "poppins-regular",
+    marginBottom: 5,
+    fontWeight: "100",
+    textAlign: "center",
+  },
   datafont: {
     fontSize: 14,
     fontFamily: "poppins-regular",
@@ -208,7 +421,23 @@ const styles = StyleSheet.create({
     height: "100%",
     bottom: 10,
   },
-
+  container3: {
+    flex: 1,
+    backgroundColor: "white",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    // height: 50, // Set the desired height of the row
+    paddingHorizontal: 10, // Adjust horizontal padding as needed
+  },
+  column1: {
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    // backgroundColor: "blue", // You can change the background color
+    marginHorizontal: 5, // Adjust the horizontal margin as needed
+    height: "100%", // This makes each column take up the full height of the row
+  },
   container2: {
     backgroundColor: "#F1EFEF",
     flexDirection: "row",

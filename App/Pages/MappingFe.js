@@ -173,11 +173,9 @@ function MappingFe(props) {
                     style={styles.check}
                   ></Icon>
                 </View>
-                <Text style={styles.modalText}>Confirm Update?</Text>
-                <Text style={styles.modalText1}>
-                  Do you really want to update this equipment? {"\n"}
-                  This process cannot be undone.
-                </Text>
+                <Text style={styles.modalText}>Fire Extinguisher ID: </Text>
+                <Text style={styles.modalText1}>Conditon:</Text>
+                <Text style={styles.modalText1}>View Details</Text>
                 <View style={styles.line}></View>
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
