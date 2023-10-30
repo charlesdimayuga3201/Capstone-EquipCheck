@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import Mapping from "../Pages/Mapping";
-import Bottomtabs from "../Custom/Bottomtabs";
+import Bottomtabs from "./Bottomtabs";
 import ViewS from "../Pages/ViewS";
 import ViewFe from "../Pages/ViewFe";
 import ViewSd from "../Pages/ViewSd";
@@ -21,7 +21,7 @@ const AppNavigator = () => {
     <NavigationContainer independent={true}>
       {/* <View styles={styles.container}> */}
       <Tab.Navigator
-        initialRouteName="FireExinguisher"
+        initialRouteName="ViewFe"
         screenOptions={({ route }) => ({
           headerShown: false,
 
@@ -46,7 +46,7 @@ const AppNavigator = () => {
               // borderRadius: 100,
               // width: "60%",
               // left: "23%",
-
+              // height: 70,
               elevation: 5,
               borderTopWidth: 0,
               backgroundColor: "white",

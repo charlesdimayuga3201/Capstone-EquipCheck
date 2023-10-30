@@ -42,6 +42,19 @@ function UpdateFe(props) {
   const [buildingOptions, setBuildingOptions] = useState([]);
   const [floorOptions, setFloorOptions] = useState([]);
   const [safetyEquipmentOptions, setSafetyEquipmentOptions] = useState([]);
+
+  const [selectedOption, setSelectedOption] = useState(null);
+
+  const [radioButtonColor, setRadioButtonColor] = useState({
+    good: "green",
+    slightlyDamage: "yellow",
+    notWorking: "red",
+  });
+
+  const handleOptionSelect = (option) => {
+    setSelectedOption(option);
+  };
+
   useEffect(() => {
     // Fetch building options from Firebase
     const fetchBuildingOptions = async () => {
@@ -102,6 +115,7 @@ function UpdateFe(props) {
       const IDOptions = [];
       const q = query(
         collection(firebase, "ListFireExtinguisher"),
+        orderBy("number", "asc"),
         where("building", "==", selectedBuilding),
         where("floor", "==", selectedFloor)
       );
@@ -119,6 +133,7 @@ function UpdateFe(props) {
 
     fetchSafetyEquipmentOptions();
   }, [selectedBuilding, selectedFloor]);
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       const now = new Date();
@@ -128,7 +143,8 @@ function UpdateFe(props) {
       const time = `${now.getHours()}:${String(now.getMinutes()).padStart(
         2,
         "0"
-      )} ${now.getHours() >= 12 ? "PM" : "AM"}`;
+      )} `;
+      // ${now.getHours() >= 12 ? "PM" : "AM"}
       setCurrentDate(date);
       setCurrentTime(time);
     }, 1000); // Update every second
@@ -180,8 +196,9 @@ function UpdateFe(props) {
     }
 
     try {
-      const selectedCollection =
-        safetyEquipmentCollections[selectedSafetyEquipment];
+      // const selectedCollection =
+      //   safetyEquipmentCollections[selectedSafetyEquipment];
+      const selectedCollection = collection(firebase, selectedSafetyEquipment);
       if (!selectedCollection) {
         console.error(`Collection not found for ${selectedSafetyEquipment}`);
         return;
@@ -197,6 +214,7 @@ function UpdateFe(props) {
         gauge: switchValues.switch2 ? "check" : "notworking",
         pinlock: switchValues.switch3 ? "check" : "notworking",
         body: switchValues.switch4 ? "check" : "notworking",
+        condition: selectedOption,
         // Repeat the same for other switches
         inspected: "Kc Dimayuga", // You can replace this with the actual user data
       };
@@ -431,12 +449,56 @@ function UpdateFe(props) {
             justifyContent: "flex-end",
           }}
         >
-          <TouchableOpacity style={styles.updatebtn} onPress={showModal}>
-            <View style={styles.updatecont}>
-              <Text style={styles.update}>Update</Text>
-            </View>
-          </TouchableOpacity>
+          {/* for condition */}
+          {selectedSafetyEquipment ? (
+            <View style={styles.btncontainer}>
+              <TouchableOpacity
+                style={[
+                  styles.radioButton,
 
+                  selectedOption === "Good Condition" && styles.selectedG,
+                ]}
+                onPress={() => handleOptionSelect("Good Condition")}
+              >
+                <Text style={styles.textinput}>Good Condition</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.radioButton,
+                  selectedOption === "Slightly Damage" && styles.selectedS,
+                ]}
+                onPress={() => handleOptionSelect("Slightly Damage")}
+              >
+                <Text style={styles.textinput}>Slightly Damage</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.radioButton,
+                  selectedOption === "Not Working" && styles.selectedN,
+                ]}
+                onPress={() => handleOptionSelect("Not Working")}
+              >
+                <Text style={styles.textinput}>Not Working</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <Text></Text>
+          )}
+          {selectedSafetyEquipment ? (
+            <TouchableOpacity
+              style={styles.updatebtn}
+              onPress={showModal}
+              disabled={selectedOption === null}
+            >
+              <View style={styles.updatecont}>
+                <Text style={styles.update}>Update</Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <Text></Text>
+          )}
           <Modal
             animationType="slide"
             transparent={true}
@@ -487,6 +549,28 @@ function UpdateFe(props) {
 }
 
 const styles = StyleSheet.create({
+  textinput: {},
+  btncontainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    bottom: "5%",
+  },
+  radioButton: {
+    marginHorizontal: "2%",
+    borderWidth: 1,
+    borderColor: "black",
+    borderRadius: 10,
+    padding: 10,
+  },
+  selectedG: {
+    backgroundColor: "green", // You can change the color to indicate selection
+  },
+  selectedS: {
+    backgroundColor: "yellow", // You can change the color to indicate selection
+  },
+  selectedN: {
+    backgroundColor: "red", // You can change the color to indicate selection
+  },
   checkicon: {
     width: 150,
     height: 150,

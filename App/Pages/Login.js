@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import {
   StyleSheet,
   View,
@@ -9,13 +9,19 @@ import {
   TouchableOpacity,
 } from "react-native";
 import FeatherIcon from "react-native-vector-icons/Feather";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import { useNavigation } from "@react-navigation/native";
 
 function Login(props) {
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require("../assets/images/bsu2.jpg")}
-        resizeMode="contain"
+        source={require("../assets/images/bsu3.png")}
+        resizeMode="cover"
         style={styles.image}
         imageStyle={styles.image_imageStyle}
       >
@@ -25,34 +31,42 @@ function Login(props) {
             Empowering Safety Today, Forging
             {"\n"}a Safer Tomorrow
           </Text>
-          <View style={styles.username_input}>
-            <View style={styles.recStack}>
-              <View style={styles.rec}>
-                <FeatherIcon name="user" style={styles.icon}></FeatherIcon>
-              </View>
-              <TextInput
-                placeholder="Username"
-                style={styles.username}
-              ></TextInput>
-            </View>
-          </View>
-          <View style={styles.password_input}>
-            <View style={styles.rect2}>
-              <View style={styles.icon2Row}>
-                <FeatherIcon name="lock" style={styles.icon2}></FeatherIcon>
+          <View style={{ gap: 8 }}>
+            <View style={styles.username_input}>
+              <View style={styles.rect2}>
+                <View style={styles.rec}>
+                  <FeatherIcon name="user" style={styles.icon}></FeatherIcon>
+                </View>
                 <TextInput
-                  secureTextEntry={true}
-                  placeholder="Password"
-                  style={styles.password}
+                  placeholder="Username"
+                  style={styles.username}
                 ></TextInput>
               </View>
             </View>
+
+            <View style={styles.password_input}>
+              <View style={styles.rect2}>
+                <View style={styles.rec}>
+                  <FeatherIcon name="lock" style={styles.icon2}></FeatherIcon>
+                  <TextInput
+                    secureTextEntry={true}
+                    placeholder="Password"
+                    style={styles.password}
+                  ></TextInput>
+                </View>
+              </View>
+            </View>
           </View>
-          <Text style={styles.forgotPassword}>Forgot Password?</Text>
+          {/* <Text style={styles.forgotPassword}>Forgot Password?</Text> */}
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
-              props.navigation.navigate("Drawermenu");
+              navigation.navigate("Drawermenu", {
+                screen: "AppNavigator",
+                params: {
+                  screen: "ViewS",
+                },
+              });
             }}
           >
             <Text style={styles.logindbtn}>Login</Text>
@@ -62,150 +76,154 @@ function Login(props) {
     </View>
   );
 }
+export default Login;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   image: {
-    width: 2012,
-    height: 1490,
-    marginTop: -345,
-    marginLeft: -354,
+    width: wp("100%"),
+    height: hp("100%"),
   },
   image_imageStyle: {
     opacity: 0.5,
   },
   rect: {
-    width: 733,
-    height: 608,
+    width: wp("50%"),
+    height: hp("75%"),
     backgroundColor: "rgba(255,255,255,1)",
     shadowColor: "rgba(0,0,0,1)",
     shadowOpacity: 0.28,
     shadowRadius: 4,
     elevation: 12,
     shadowOffset: {
-      width: 7,
-      height: 7,
+      width: wp("1%"),
+      height: hp("1%"),
     },
-    borderRadius: 52,
-    marginTop: 441,
-    marginLeft: 640,
+    borderRadius: wp("3%"),
+    marginTop: hp("12%"),
+    marginLeft: wp("25%"),
   },
   equipcheck: {
     fontFamily: "poppins-regular",
     color: "rgba(255,89,79,1)",
     fontWeight: "900",
-    fontSize: 70,
-    marginTop: 48,
+    fontSize: wp("4%"),
+    marginTop: hp("5%"),
     textAlign: "center",
   },
   aLwaysMAkeSure: {
     fontFamily: "poppins-regular",
     color: "#121212",
-    fontSize: 23,
+    fontSize: wp("2%"),
     textAlign: "center",
-    marginTop: 3,
+    marginTop: hp("1%"),
   },
   username_input: {
-    width: 426,
-    height: 50,
-    marginTop: 66,
-    marginLeft: 141,
+    width: wp("50%"),
+    height: hp("5%"),
+    marginTop: hp("4%"),
+    marginLeft: wp("15%"),
+    alignSelf: "center",
   },
   rec: {
-    top: 12,
+    // top: hp("1.5%"),
     left: 0,
-    width: 426,
-    height: 50,
+    width: wp("36%"),
+    height: hp("7%"),
     position: "absolute",
     backgroundColor: "rgba(247,251,255,1)",
-    borderRadius: 39,
-    borderWidth: 1,
+    borderRadius: wp("2%"),
+    borderWidth: wp("0.2%"),
     borderColor: "rgba(212,215,227,1)",
+    alignSelf: "center",
   },
   icon: {
     color: "rgba(128,128,128,1)",
-    fontSize: 18,
-    height: 18,
-    width: 18,
-    marginTop: 16,
-    marginLeft: 22,
+    fontSize: wp("2%"),
+    height: hp("10%"),
+    width: wp("10%"),
+    marginTop: hp("1%"),
+    marginLeft: wp("3%"),
   },
   username: {
     top: 0,
-    left: 49,
+    left: wp("8%"),
     position: "absolute",
     fontFamily: "poppins-regular",
     color: "#121212",
-    height: 75,
-    width: 334,
-    fontSize: 15,
+    height: hp("7%"),
+    width: wp("50%"),
+    fontSize: wp("1.5%"),
   },
   recStack: {
-    width: 426,
-    height: 75,
-    marginTop: -12,
+    width: wp("60%"),
+    height: hp("6%"),
+    marginTop: hp("1.5%"),
   },
   password_input: {
-    width: 426,
-    height: 50,
-    marginTop: 18,
-    marginLeft: 141,
+    width: wp("50%"),
+    height: hp("5%"),
+    marginTop: hp("4%"),
+    marginLeft: wp("15%"),
+    alignSelf: "center",
   },
   rect2: {
-    width: 426,
-    height: 50,
-    backgroundColor: "rgba(247,251,255,1)",
-    borderRadius: 39,
-    borderWidth: 1,
-    borderColor: "rgba(212,215,227,1)",
-    flexDirection: "row",
+    width: wp("60%"),
+    height: hp("6%"),
+    marginTop: hp("1.5%"),
   },
   icon2: {
     color: "rgba(128,128,128,1)",
-    fontSize: 18,
-    height: 18,
-    width: 18,
-    marginTop: 14,
+    fontSize: wp("2%"),
+    height: hp("3%"),
+    width: wp("3%"),
+    marginTop: hp("1.5%"),
+    marginLeft: wp("3%"),
   },
   password: {
+    top: 0,
+    left: wp("8%"),
+    position: "absolute",
     fontFamily: "poppins-regular",
     color: "#121212",
-    height: 46,
-    width: 350,
-    marginLeft: 10,
+    height: hp("7%"),
+    width: wp("50%"),
+    fontSize: wp("1.5%"),
   },
   icon2Row: {
-    height: 46,
-    flexDirection: "row",
-    flex: 1,
-    marginRight: 26,
-    marginLeft: 22,
-    marginTop: 2,
+    top: hp("1.5%"),
+    left: 0,
+    width: wp("40%"),
+    height: hp("7%"),
+    position: "absolute",
+    backgroundColor: "rgba(247,251,255,1)",
+    borderRadius: wp("2%"),
+    borderWidth: wp("0.2%"),
+    borderColor: "rgba(212,215,227,1)",
+    alignSelf: "center",
   },
   forgotPassword: {
     color: "rgba(239,7,7,1)",
-    height: 22,
-    width: 113,
-    marginTop: 16,
-    marginLeft: 435,
+    height: hp("3%"),
+    width: wp("15%"),
+    marginTop: hp("2.5%"),
+    marginLeft: wp("50%"),
   },
   button: {
-    width: 451,
-    height: 66,
+    width: wp("38%"),
+    height: hp("7%"),
     backgroundColor: "rgba(58,110,144,1)",
-    borderRadius: 19,
+    borderRadius: wp("15%"),
     justifyContent: "center",
-    marginTop: 12,
-    marginLeft: 129,
+    marginTop: hp("10%"),
+    marginLeft: wp("6.5%"),
   },
   logindbtn: {
     fontFamily: "poppins-regular",
     color: "rgba(255,254,254,1)",
-    fontSize: 23,
+    fontSize: wp("1.5%"),
     alignSelf: "center",
   },
 });
-
-export default Login;

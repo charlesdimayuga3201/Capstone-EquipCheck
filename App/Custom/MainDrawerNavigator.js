@@ -5,7 +5,7 @@ import {
   DrawerItemList,
   DrawerItem,
 } from "@react-navigation/drawer";
-import Mapping from "../Pages/Mapping";
+
 import Bottomtabs from "../Custom/Bottomtabs";
 import ViewFe from "../Pages/ViewFe";
 import Login from "../Pages/Login";

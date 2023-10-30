@@ -18,15 +18,30 @@ import {
 import { firebase } from "../../firebaseConfig";
 import FeFetch from "./FeFetch";
 import Icon from "react-native-vector-icons/Ionicons";
-
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import { useRoute } from "@react-navigation/native";
 function ViewFe(props) {
-  const [selectedBuilding, setSelectedBuilding] = useState(null);
-  const [selectedFloor, setSelectedFloor] = useState(null);
+  const route = useRoute();
+  // const { MselectedBuilding, MselectedFloor } = route.params;
+
+  const [selectedBuilding, setSelectedBuilding] = useState();
+  const [selectedFloor, setSelectedFloor] = useState();
   const [selectedSafetyEquipment, setSelectedSafetyEquipment] = useState(null);
 
   const [buildingOptions, setBuildingOptions] = useState([]);
   const [floorOptions, setFloorOptions] = useState([]);
   const [safetyEquipmentOptions, setSafetyEquipmentOptions] = useState([]);
+
+  // const route = useRoute();
+  // const { selectedBuilding: initialBuilding, selectedFloor: initialFloor } =
+  //   route.params;
+
+  // const [userSelectedBuilding, setUserSelectedBuilding] =
+  //   useState(initialBuilding);
+  // const [userSelectedFloor, setUserSelectedFloor] = useState(initialFloor);
   useEffect(() => {
     // Fetch building options from Firebase
     const fetchBuildingOptions = async () => {
@@ -87,6 +102,7 @@ function ViewFe(props) {
       const IDOptions = [];
       const q = query(
         collection(firebase, "ListFireExtinguisher"),
+        orderBy("number", "asc"),
         where("building", "==", selectedBuilding),
         where("floor", "==", selectedFloor)
       );
@@ -120,8 +136,9 @@ function ViewFe(props) {
       }
 
       const equipmentData = [];
-      const selectedCollection =
-        safetyEquipmentCollections[selectedSafetyEquipment];
+      // const selectedCollection =
+      //   safetyEquipmentCollections[selectedSafetyEquipment];
+      const selectedCollection = collection(firebase, selectedSafetyEquipment);
       if (!selectedCollection) {
         console.error(`Collection not found for ${selectedSafetyEquipment}`);
         return;
@@ -129,7 +146,7 @@ function ViewFe(props) {
 
       const q = query(
         selectedCollection,
-        where("id", "==", selectedSafetyEquipment),
+        // where("id", "==", selectedSafetyEquipment),
         orderBy("date", "desc"),
         orderBy("time", "desc"),
         limit(1)
@@ -375,6 +392,7 @@ function ViewFe(props) {
     </View>
   );
 }
+export default ViewFe;
 
 const styles = StyleSheet.create({
   datafont1: {
@@ -547,5 +565,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-export default ViewFe;

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import Mapping from "../Pages/Mapping";
-import Bottomtabs from "../Custom/Bottomtabs";
+import Bottomtabs from "./Bottomtabs";
 import HistoryS from "../Pages/HistoryS";
 import HistoryFe from "../Pages/HistoryFe";
 import HistorySd from "../Pages/HistorySd";
@@ -34,11 +34,11 @@ const AppNavigator = () => {
           tabBarStyle: [
             {
               position: "absolute",
-              bottom: 10,
-              borderRadius: 100,
-              width: "60%",
-              left: "23%",
-              height: 70,
+              // bottom: 10,
+              // borderRadius: 100,
+              // width: "60%",
+              // left: "23%",
+              // height: 70,
               elevation: 5,
               borderTopWidth: 0,
               backgroundColor: "white",

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import Mapping from "../Pages/Mapping";
-import Bottomtabs from "../Custom/Bottomtabs";
+import Bottomtabs from "./Bottomtabs";
 import UpdateS from "../Pages/UpdateS";
 import UpdateFe from "../Pages/UpdateFe";
 import UpdateSd from "../Pages/UpdateSd";

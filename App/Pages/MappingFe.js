@@ -15,6 +15,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import { Picker } from "@react-native-picker/picker";
 import { Table, TableWrapper, Row, Cell } from "react-native-table-component";
 import { StatusBar } from "expo-status-bar";
+import { useNavigation } from "@react-navigation/native";
 import {
   QuerySnapshot,
   doc,
@@ -30,48 +31,126 @@ import {
 import { firebase } from "../../firebaseConfig";
 import Icon from "react-native-vector-icons/Ionicons";
 import MaterialIconsIcon from "react-native-vector-icons/MaterialIcons";
+import FE_CICS_1st from "./FE_Mapping/FE_CICS_1st";
 
-const data1 = [
-  { label: "CICS", value: "1" },
-  { label: "CEAFA", value: "2" },
-  { label: "GYM", value: "3" },
-  { label: "CIT", value: "4" },
-  { label: "SSC", value: "5" },
-];
-
-const data2 = [
-  { label: "1st Floor", value: "1" },
-  { label: "2nd Floor", value: "2" },
-  { label: "3rd Floor", value: "3" },
-  { label: "4th Floor", value: "4" },
-  { label: "5Th Floor", value: "5" },
-];
-
-const data3 = [
-  { label: "E1", value: "1" },
-  { label: "E2", value: "2" },
-  { label: "E3", value: "3" },
-  { label: "E4", value: "4" },
-  { label: "E5", value: "5" },
-  { label: "E6", value: "6" },
-  { label: "E7", value: "7" },
-  { label: "E8", value: "8" },
-];
-function MappingFe(props) {
-  const [value1, setValue1] = useState(null);
-  const [value2, setValue2] = useState(null);
-  const [value3, setValue3] = useState(null);
+function MappingFe({ navigation }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [buttonOpacity, setButtonOpacity] = useState(1);
-  const showModal = () => {
-    setIsModalVisible(true);
-    setButtonOpacity(0.5); // Change opacity when modal is shown
-  };
+
+  const [currentDate, setCurrentDate] = useState("");
+  const [currentTime, setCurrentTime] = useState("");
+  const [MselectedBuilding, MsetSelectedBuilding] = useState(null);
+  const [MselectedFloor, MsetSelectedFloor] = useState(null);
+  const [selectedSafetyEquipment, setSelectedSafetyEquipment] = useState(null);
+
+  const [buildingOptions, setBuildingOptions] = useState([]);
+  const [floorOptions, setFloorOptions] = useState([]);
+  const [safetyEquipmentOptions, setSafetyEquipmentOptions] = useState([]);
+  const [selectedFireExtinguisherId, setSelectedFireExtinguisherId] = useState(
+    []
+  );
+  const [selectedIcon, setSelectedIcon] = useState([]);
+  useEffect(() => {
+    // Fetch building options from Firebase
+    const fetchBuildingOptions = async () => {
+      const Buildings = [];
+      const q = collection(firebase, "ListFireExtinguisher");
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (
+          data.building &&
+          !Buildings.some((item) => item.value === data.building)
+        ) {
+          Buildings.push({ label: data.building, value: data.building });
+        }
+      });
+
+      setBuildingOptions(Buildings);
+    };
+
+    fetchBuildingOptions();
+  }, []);
+
+  useEffect(() => {
+    // Fetch floor options from Firebase based on the selected building
+    const fetchFloorOptions = async () => {
+      if (!MselectedBuilding) {
+        return; // No need to fetch if building is not selected yet
+      }
+
+      const Floors = [];
+      const q = query(
+        collection(firebase, "ListFireExtinguisher"),
+        where("building", "==", MselectedBuilding)
+      );
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.floor && !Floors.some((item) => item.value === data.floor)) {
+          Floors.push({ label: data.floor, value: data.floor });
+        }
+      });
+
+      setFloorOptions(Floors);
+    };
+
+    fetchFloorOptions();
+  }, [MselectedBuilding]);
 
   const hideModal = () => {
     setIsModalVisible(false);
     setButtonOpacity(1); // Restore opacity when modal is hidden
+    setSelectedFireExtinguisherId("");
   };
+
+  const showModal = (fireExtinguisherId) => {
+    console.log(
+      `Showing modal for Fire Extinguisher ID: ${fireExtinguisherId}`
+    );
+    setSelectedFireExtinguisherId(fireExtinguisherId);
+    setIsModalVisible(true);
+    setButtonOpacity(0.5);
+  };
+
+  // all firestore
+  useEffect(() => {
+    const IconData = [];
+    if (selectedFireExtinguisherId) {
+      const fireExtinguisherCollection = collection(
+        firebase,
+        `FE${selectedFireExtinguisherId}`
+      );
+
+      const fetchFireExtinguisherData = async () => {
+        try {
+          const q = query(
+            fireExtinguisherCollection,
+
+            orderBy("date", "desc"),
+            orderBy("time", "desc"),
+            limit(1)
+          );
+
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            IconData.push(data);
+            // Use the data as needed
+            console.log("Fetched Fire Extinguisher data:", data);
+          });
+          console.log(IconData);
+          setSelectedIcon(IconData);
+        } catch (error) {
+          console.error("Error fetching Fire Extinguisher:", error);
+        }
+      };
+      fetchFireExtinguisherData();
+    }
+  }, [selectedFireExtinguisherId]);
+  // const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <View style={styles.group}>
@@ -95,16 +174,17 @@ function MappingFe(props) {
             selectedTextStyle={styles.selectedTextStyle}
             inputSearchStyle={styles.inputSearchStyle}
             iconStyle={styles.iconStyle}
-            data={data1}
+            data={buildingOptions}
             search
             maxHeight={300}
             labelField="label"
             valueField="value"
             placeholder="Select item"
             searchPlaceholder="Search..."
-            value={value1}
+            value={MselectedBuilding}
             onChange={(item) => {
-              setValue1(item.value);
+              MsetSelectedBuilding(item.value);
+              MsetSelectedFloor(null);
             }}
           />
         </View>
@@ -116,341 +196,45 @@ function MappingFe(props) {
             selectedTextStyle={styles.selectedTextStyle}
             inputSearchStyle={styles.inputSearchStyle}
             iconStyle={styles.iconStyle}
-            data={data2}
+            data={floorOptions}
             search
             maxHeight={300}
             labelField="label"
             valueField="value"
             placeholder="Select item"
             searchPlaceholder="Search..."
-            value={value2}
+            value={MselectedFloor}
             onChange={(item) => {
-              setValue2(item.value);
-            }}
-          />
-        </View>
-        <View style={styles.container1}>
-          <Text style={styles.font}>Safety Equipment</Text>
-          <Dropdown
-            style={[styles.dropdown, { backgroundColor: "white" }]}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            iconStyle={styles.iconStyle}
-            data={data3}
-            search
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder="Select item"
-            searchPlaceholder="Search..."
-            value={value3}
-            onChange={(item) => {
-              setValue3(item.value);
+              MsetSelectedFloor(item.value);
             }}
           />
         </View>
       </View>
-      <View style={styles.group1}>
-        <ImageBackground
-          source={require("../assets/images/fptest.png")}
-          resizeMode="contain"
-          style={styles.image1}
-          imageStyle={styles.image1_imageStyle}
-        >
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={isModalVisible}
-            onRequestClose={hideModal}
-          >
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                {/* <View style={styles.lineG}></View> */}
-                <View style={styles.checkicon}>
-                  <Icon
-                    name="ios-checkmark-circle-outline"
-                    style={styles.check}
-                  ></Icon>
-                </View>
-                <Text style={styles.modalText}>Fire Extinguisher ID: </Text>
-                <Text style={styles.modalText1}>Conditon:</Text>
-                <Text style={styles.modalText1}>View Details</Text>
-                <View style={styles.line}></View>
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={styles.modalButtonY}
-                    onPress={() => {
-                      // Handle "Yes" button press here
-                      hideModal();
-                      // Add your update logic here
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Yes</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.modalButtonN}
-                    onPress={hideModal}
-                  >
-                    <Text style={styles.buttonText}>No</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
 
-          <View style={styles.button12ColumnRow}>
-            <View style={styles.button12Column}>
-              <TouchableOpacity style={styles.button12} onPress={showModal}>
-                <View style={styles.indicator1StackStack}>
-                  <View style={styles.indicator1Stack}>
-                    <View style={styles.indicator1}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.d_indicator1}></View>
-                </View>
-              </TouchableOpacity>
-              <View style={styles.group8}>
-                <View style={styles.rect12StackStack}>
-                  <View style={styles.rect12Stack}>
-                    <View style={styles.rect12}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon6}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect13}></View>
-                </View>
-              </View>
-            </View>
-            <View style={styles.buttonColumn}>
-              <TouchableOpacity style={styles.button}>
-                <View style={styles.rect2StackStack}>
-                  <View style={styles.rect2Stack}>
-                    <View style={styles.rect2}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon1}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect3}></View>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button11}>
-                <View style={styles.rect14StackStack}>
-                  <View style={styles.rect14Stack}>
-                    <View style={styles.rect14}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon7}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect15}></View>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.button2Stack}>
-              <TouchableOpacity style={styles.button2}>
-                <View style={styles.rect4StackStack}>
-                  <View style={styles.rect4Stack}>
-                    <View style={styles.rect4}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon2}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect5}></View>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button10}>
-                <View style={styles.rect16StackStack}>
-                  <View style={styles.rect16Stack}>
-                    <View style={styles.rect16}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon8}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect17}></View>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.button3Stack}>
-              <TouchableOpacity style={styles.button3}>
-                <View style={styles.rect6StackStack}>
-                  <View style={styles.rect6Stack}>
-                    <View style={styles.rect6}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon3}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect7}></View>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button9}>
-                <View style={styles.rect18StackStack}>
-                  <View style={styles.rect18Stack}>
-                    <View style={styles.rect18}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon9}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect19}></View>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.button8}>
-              <View style={styles.rect20StackStack}>
-                <View style={styles.rect20Stack}>
-                  <View style={styles.rect20}></View>
-                  <MaterialIconsIcon
-                    name="location-on"
-                    style={styles.icon10}
-                  ></MaterialIconsIcon>
-                </View>
-                <View style={styles.rect21}></View>
-              </View>
-            </TouchableOpacity>
-            <View style={styles.button4Stack}>
-              <TouchableOpacity style={styles.button4}>
-                <View style={styles.rect8StackStack}>
-                  <View style={styles.rect8Stack}>
-                    <View style={styles.rect8}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon4}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect9}></View>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button7}>
-                <View style={styles.rect22StackStack}>
-                  <View style={styles.rect22Stack}>
-                    <View style={styles.rect22}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon11}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect23}></View>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.button5Stack}>
-              <TouchableOpacity style={styles.button5}>
-                <View style={styles.rect10StackStack}>
-                  <View style={styles.rect10Stack}>
-                    <View style={styles.rect10}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon5}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect11}></View>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button6}>
-                <View style={styles.rect24StackStack}>
-                  <View style={styles.rect24Stack}>
-                    <View style={styles.rect24}></View>
-                    <MaterialIconsIcon
-                      name="location-on"
-                      style={styles.icon12}
-                    ></MaterialIconsIcon>
-                  </View>
-                  <View style={styles.rect25}></View>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ImageBackground>
+      <View style={styles.group1}>
+        {MselectedFloor === "1st Floor" && (
+          //Mapping Content//
+
+          <FE_CICS_1st
+            isModalVisible={isModalVisible}
+            hideModal={hideModal}
+            selectedIcon={selectedIcon}
+            showModal={showModal}
+            MselectedBuilding={MselectedBuilding}
+            MselectedFloor={MselectedFloor}
+            navigation={navigation}
+          />
+        )}
       </View>
     </View>
   );
 }
-
+export default MappingFe;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  checkicon: {
-    width: 150,
-    height: 150,
-    marginVertical: 35,
-  },
-  check: {
-    color: "rgba(128,214,126,1)",
-    fontSize: 155,
-  },
-  line: {
-    top: 10,
-    height: 2,
-    width: "100%",
-    backgroundColor: "#B4B4B3",
-    // borderBottomWidth: 2,
 
-    // borderBottomColor: "red", // You can change the color of the line
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    // backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
-  },
-  modalContent: {
-    backgroundColor: "#FFFFFF",
-    elevation: 8,
-    borderRadius: 10,
-    alignItems: "center",
-    width: "40%", // Adjust the width as needed
-    height: "60%", // Adjust the height as needed
-  },
-  modalText1: {
-    color: "#7D7C7C",
-    fontSize: 20,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  modalText: {
-    color: "#454545",
-    fontWeight: "500",
-    fontSize: 20,
-    marginBottom: 10,
-  },
-  buttonContainer: {
-    marginTop: 35,
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  modalButtonY: {
-    width: "35%",
-    // elevation: 4,
-    backgroundColor: "#7FCD91",
-    padding: 20,
-    borderRadius: 5,
-    marginHorizontal: 20,
-    alignItems: "center",
-  },
-  modalButtonN: {
-    width: "35%",
-    // elevation: 4,
-    backgroundColor: "#FF6464",
-    padding: 20,
-    borderRadius: 5,
-    marginHorizontal: 20,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "900",
-    fontFamily: "poppins-bold",
-  },
   container1: {
     top: 0,
     backgroundColor: "transparent",
@@ -517,674 +301,4 @@ const styles = StyleSheet.create({
 
     marginLeft: 84,
   },
-  image1: {
-    width: 1112,
-    height: 466,
-  },
-  image1_imageStyle: {},
-  button12: {
-    width: 30,
-    height: 31,
-    marginLeft: 15,
-  },
-  indicator1: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(23,137,23,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  indicator1Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  d_indicator1: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  indicator1StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  indicator1Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  d_indicator1: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  indicator1StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  group8: {
-    width: 30,
-    height: 31,
-    marginTop: 1,
-  },
-  rect12: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon6: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(225,47,35,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect12Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect13: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect12StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button12Column: {
-    width: 44,
-  },
-  button: {
-    width: 30,
-    height: 31,
-    marginLeft: 14,
-  },
-  rect2: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon1: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(23,137,23,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect2Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect3: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect2StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button11: {
-    width: 30,
-    height: 31,
-  },
-  rect14: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon7: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(225,47,35,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect14Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect15: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect14StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  buttonColumn: {
-    width: 44,
-    marginLeft: 106,
-    marginTop: 1,
-  },
-  button2: {
-    top: 0,
-    left: 16,
-    width: 30,
-    height: 31,
-    position: "absolute",
-  },
-  rect4: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon2: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(23,137,23,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect4Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect5: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect4StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button10: {
-    top: 28,
-    width: 30,
-    height: 31,
-    position: "absolute",
-    left: 0,
-  },
-  rect16: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon8: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(225,47,35,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect16Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect17: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect16StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button2Stack: {
-    width: 46,
-    height: 59,
-    marginLeft: 106,
-    marginTop: 3,
-  },
-  button3: {
-    top: 0,
-    left: 15,
-    width: 30,
-    height: 31,
-    position: "absolute",
-  },
-  rect6: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon3: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(23,137,23,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect6Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect7: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect6StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button9: {
-    top: 29,
-    width: 30,
-    height: 31,
-    position: "absolute",
-    left: 0,
-  },
-  rect18: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon9: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(225,47,35,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect18Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect19: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect18StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button3Stack: {
-    width: 45,
-    height: 60,
-    marginLeft: 105,
-    marginTop: 3,
-  },
-  button8: {
-    width: 30,
-    height: 31,
-    marginLeft: 31,
-    marginTop: 31,
-  },
-  rect20: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon10: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(225,47,35,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect20Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect21: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect20StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button4: {
-    top: 0,
-    left: 15,
-    width: 30,
-    height: 31,
-    position: "absolute",
-  },
-  rect8: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon4: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(23,137,23,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect8Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect9: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect8StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button7: {
-    top: 28,
-    width: 30,
-    height: 31,
-    position: "absolute",
-    left: 0,
-  },
-  rect22: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon11: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(225,47,35,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect22Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect23: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect22StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button4Stack: {
-    width: 45,
-    height: 59,
-    marginLeft: 46,
-    marginTop: 2,
-  },
-  button5: {
-    top: 0,
-    left: 13,
-    width: 30,
-    height: 31,
-    position: "absolute",
-  },
-  rect10: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon5: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(23,137,23,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect10Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect11: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect10StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button6: {
-    top: 29,
-    width: 30,
-    height: 31,
-    position: "absolute",
-    left: 0,
-  },
-  rect24: {
-    top: 7,
-    left: 9,
-    width: 11,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-  },
-  icon12: {
-    top: 0,
-    position: "absolute",
-    color: "rgba(225,47,35,1)",
-    fontSize: 30,
-    left: 0,
-    zIndex: 1,
-  },
-  rect24Stack: {
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    position: "absolute",
-  },
-  rect25: {
-    top: 22,
-    left: 5,
-    width: 20,
-    height: 11,
-    position: "absolute",
-    borderRadius: 10,
-    backgroundColor: "rgba(99,196,99,1)",
-    borderWidth: 2,
-    borderColor: "rgba(69,64,64,1)",
-  },
-  rect24StackStack: {
-    width: 30,
-    height: 33,
-    marginTop: -2,
-  },
-  button5Stack: {
-    width: 43,
-    height: 60,
-    marginLeft: 107,
-    marginTop: 1,
-  },
-  button12ColumnRow: {
-    height: 63,
-    flexDirection: "row",
-    marginTop: 225,
-    marginLeft: 75,
-    marginRight: 239,
-  },
 });
-
-export default MappingFe;

@@ -99,6 +99,7 @@ function HistoryFe(props) {
       const IDOptions = [];
       const q = query(
         collection(firebase, "ListFireExtinguisher"),
+        orderBy("number", "asc"),
         where("building", "==", selectedBuilding),
         where("floor", "==", selectedFloor)
       );
@@ -132,8 +133,9 @@ function HistoryFe(props) {
       }
 
       const equipmentData = [];
-      const selectedCollection =
-        safetyEquipmentCollections[selectedSafetyEquipment];
+      // const selectedCollection =
+      //   safetyEquipmentCollections[selectedSafetyEquipment];
+      const selectedCollection = collection(firebase, selectedSafetyEquipment);
       if (!selectedCollection) {
         console.error(`Collection not found for ${selectedSafetyEquipment}`);
         return;
@@ -326,7 +328,7 @@ function HistoryFe(props) {
             </View>
             <View style={styles.column1}>
               {safetyEquipmentData.map((item, index) => (
-                <Text key={index} style={styles.datafont1}>
+                <Text key={index} style={styles.datafontc}>
                   {item.nozzle === "check" ? (
                     // Use Ionicons for the check icon
                     <Icon name="checkmark-circle" size={24} color="green" />
@@ -339,7 +341,7 @@ function HistoryFe(props) {
             </View>
             <View style={styles.column1}>
               {safetyEquipmentData.map((item, index) => (
-                <Text key={index} style={styles.datafont1}>
+                <Text key={index} style={styles.datafontc}>
                   {item.gauge === "check" ? (
                     // Use Ionicons for the check icon
                     <Icon name="checkmark-circle" size={24} color="green" />
@@ -352,7 +354,7 @@ function HistoryFe(props) {
             </View>
             <View style={styles.column1}>
               {safetyEquipmentData.map((item, index) => (
-                <Text key={index} style={styles.datafont1}>
+                <Text key={index} style={styles.datafontc}>
                   {item.pinlock === "check" ? (
                     // Use Ionicons for the check icon
                     <Icon name="checkmark-circle" size={24} color="green" />
@@ -365,7 +367,7 @@ function HistoryFe(props) {
             </View>
             <View style={styles.column1}>
               {safetyEquipmentData.map((item, index) => (
-                <Text key={index} style={styles.datafont1}>
+                <Text key={index} style={styles.datafontc}>
                   {item.body === "check" ? (
                     // Use Ionicons for the check icon
                     <Icon name="checkmark-circle" size={24} color="green" />
@@ -394,8 +396,13 @@ const styles = StyleSheet.create({
   datafont1: {
     fontSize: 17,
     fontFamily: "poppins-regular",
-    marginBottom: 5,
+    marginBottom: 20,
     fontWeight: "100",
+    textAlign: "center",
+  },
+  datafontc: {
+    marginTop: 3,
+    marginBottom: 20,
     textAlign: "center",
   },
   datafont: {
@@ -428,7 +435,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     // height: 50, // Set the desired height of the row
-    paddingHorizontal: 10, // Adjust horizontal padding as needed
+    // paddingHorizontal: 10, // Adjust horizontal padding as needed
   },
   column1: {
     alignItems: "center",

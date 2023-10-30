@@ -19,11 +19,11 @@ import {
 
 import { NavigationContainer } from "@react-navigation/native";
 import Mapping from "../Pages/Mapping";
-import Bottomtabs from "../Custom/Bottomtabs";
-import AppNavigator from "../Custom/AppNavigator";
-import AppNavigator1 from "../Custom/AppNavigator1";
-import AppNavigator2 from "../Custom/AppNavigator2";
-import AppNavigator4 from "../Custom/AppNavigator4";
+import Bottomtabs from "./Bottomtabs";
+import AppNavigator from "./AppNavigator";
+import AppNavigator1 from "./AppNavigator1";
+import AppNavigator2 from "./AppNavigator2";
+import AppNavigator4 from "./AppNavigator4";
 import Setting from "../Pages/Setting";
 import Login from "../Pages/Login";
 import { StatusBar } from "expo-status-bar";
@@ -37,11 +37,13 @@ import {
 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createStackNavigator } from "@react-navigation/stack";
+import { useNavigation } from "@react-navigation/native";
 const Stack = createNativeStackNavigator();
 
 const Drawer = createDrawerNavigator();
 
 export default function Drawermenu() {
+  const navigation = useNavigation();
   const [showSubMenu1, setShowSubMenu1] = useState(false);
   const [showSubMenu2, setShowSubMenu2] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false); // State to control the modal
@@ -62,7 +64,7 @@ export default function Drawermenu() {
         initialRouteName="MappingFe"
         drawerContent={(props) => {
           return (
-            <SafeAreaView>
+            <View>
               <ImageBackground
                 source={require("../assets/images/menu-bg9.png")}
                 style={{ padding: 20 }}
@@ -116,7 +118,7 @@ export default function Drawermenu() {
                 style={{
                   flexDirection: "row",
                   alignItems: "flex-end",
-                  paddingVertical: 300,
+                  paddingVertical: 250,
                   paddingHorizontal: 20,
                   borderTopColor: "#f4f4f4",
                   borderTopWidth: 1,
@@ -137,7 +139,7 @@ export default function Drawermenu() {
                   Logout
                 </Text>
               </TouchableOpacity>
-            </SafeAreaView>
+            </View>
           );
         }}
         screenOptions={{
