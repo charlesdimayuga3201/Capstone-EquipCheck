@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Component, useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -8,6 +8,8 @@ import {
   ImageBackground,
   Modal,
   Button,
+  Alert,
+  BackHandler,
 } from "react-native";
 import FeatherIcon from "react-native-vector-icons/Feather";
 import "react-native-gesture-handler";
@@ -25,6 +27,7 @@ import AppNavigator2 from "./AppNavigator2";
 import AppNavigator4 from "./AppNavigator4";
 import Setting from "../Pages/Setting";
 import Login from "../Pages/Login";
+import UpdateRole from "../Pages/UpdateRole";
 import { StatusBar } from "expo-status-bar";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -50,11 +53,62 @@ export default function AdminDrawermenu() {
     setModalVisible(!isModalVisible); // Function to toggle the modal visibility
   };
   const handleLogout = () => {
-    // Implement your logout logic here .
-    // For example, you can clear the user's session or token.
-    // Then navigate to the login screen.
-    navigation.navigate("Login"); // Replace "Login" with your actual login screen name.
+    Alert.alert(
+      "Logout Confirmation",
+      "Are you sure you want to log out?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: "Confirm",
+          onPress: () => {
+            // Perform logout or go back to the login page as needed
+            // For instance, you might navigate back to the login page
+            navigation.navigate("Login");
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+    return true;
   };
+  useEffect(() => {
+    const backAction = () => {
+      if (navigation.isFocused()) {
+        Alert.alert(
+          "Logout Confirmation",
+          "Are you sure you want to log out?",
+          [
+            {
+              text: "Cancel",
+              onPress: () => null,
+              style: "cancel",
+            },
+            {
+              text: "Confirm",
+              onPress: () => {
+                // Perform logout or go back to the login page as needed
+                // For instance, you might navigate back to the login page
+                navigation.navigate("Login");
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+        return true; // Prevent default back button behavior
+      }
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove(); // Clean up the event listener on unmount
+  }, [navigation]);
 
   return (
     <NavigationContainer independent={true}>
@@ -74,12 +128,12 @@ export default function AdminDrawermenu() {
                 </TouchableOpacity>
                 <View style={{ flexDirection: "row" }}>
                   <Image
-                    source={require("../assets/images/user-profile.jpg")}
+                    source={require("../assets/images/eqc_logo3.png")}
                     style={{
-                      height: 100,
-                      width: 100,
+                      height: 200,
+                      width: 200,
                       borderRadius: 40,
-                      marginBottom: 10,
+
                       alignSelf: "center",
                     }}
                   />
@@ -92,7 +146,7 @@ export default function AdminDrawermenu() {
                     marginBottom: 5,
                   }}
                 >
-                  EMU
+                  EquipCheck
                 </Text>
 
                 <View style={{ flexDirection: "row" }}>
@@ -116,7 +170,7 @@ export default function AdminDrawermenu() {
                 style={{
                   flexDirection: "row",
                   alignItems: "flex-end",
-                  paddingVertical: 250,
+                  paddingVertical: 70,
                   paddingHorizontal: 20,
                   borderTopColor: "#f4f4f4",
                   borderTopWidth: 1,
@@ -225,7 +279,7 @@ export default function AdminDrawermenu() {
               <FeatherIcon name="users" size={20} color="#808080"></FeatherIcon>
             ),
           }}
-          component={AppNavigator2}
+          component={UpdateRole}
         />
         <Drawer.Screen
           name="Review All Equipment"
@@ -265,7 +319,7 @@ const styles = StyleSheet.create({
   subMenuItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    // padding: 16,
   },
   subMenuItemText: {
     marginLeft: 8,

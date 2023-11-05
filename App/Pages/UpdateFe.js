@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   Modal,
+  Alert,
 } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Dropdown } from "react-native-element-dropdown";
@@ -32,7 +33,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 function UpdateFe(props) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [buttonOpacity, setButtonOpacity] = useState(1);
-
+  const [inspected, setInspected] = useState("");
   const [currentDate, setCurrentDate] = useState("");
   const [currentTime, setCurrentTime] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState(null);
@@ -88,6 +89,7 @@ function UpdateFe(props) {
       const Floors = [];
       const q = query(
         collection(firebase, "ListFireExtinguisher"),
+        orderBy("floor", "asc"),
         where("building", "==", selectedBuilding)
       );
       const querySnapshot = await getDocs(q);
@@ -140,6 +142,7 @@ function UpdateFe(props) {
       const date = `${
         now.getMonth() + 1
       }/${now.getDate()}/${now.getFullYear()}`;
+      // const time = `${now.getHours()}:${String(now.getMinutes()).padStart()} `;
       const time = `${now.getHours()}:${String(now.getMinutes()).padStart(
         2,
         "0"
@@ -216,11 +219,12 @@ function UpdateFe(props) {
         body: switchValues.switch4 ? "check" : "notworking",
         condition: selectedOption,
         // Repeat the same for other switches
-        inspected: "Kc Dimayuga", // You can replace this with the actual user data
+        inspected: inspected, // You can replace this with the actual user data
       };
 
       const docRef = await addDoc(selectedCollection, docData);
       console.log("Document added with ID: ", docRef.id);
+      Alert.alert("Success", "Update Successfully");
 
       // Optionally, you can reset the form fields or take any other actions here
     } catch (error) {
@@ -434,7 +438,13 @@ function UpdateFe(props) {
               </View>
 
               <View style={styles.column1}>
-                <Text style={styles.datafont1}>Kc Dimayuga</Text>
+                <TextInput
+                  placeholder="Enter "
+                  style={styles.datafont1}
+                  value={inspected}
+                  onChangeText={(text) => setInspected(text)}
+                ></TextInput>
+                <View style={styles.lineI}></View>
               </View>
             </>
           ) : (
@@ -490,7 +500,7 @@ function UpdateFe(props) {
             <TouchableOpacity
               style={styles.updatebtn}
               onPress={showModal}
-              disabled={selectedOption === null}
+              disabled={!selectedOption || !inspected}
             >
               <View style={styles.updatecont}>
                 <Text style={styles.update}>Update</Text>
@@ -549,6 +559,11 @@ function UpdateFe(props) {
 }
 
 const styles = StyleSheet.create({
+  lineI: {
+    height: 2,
+    width: "100%",
+    backgroundColor: "#B4B4B3",
+  },
   textinput: {},
   btncontainer: {
     flexDirection: "row",
@@ -558,18 +573,18 @@ const styles = StyleSheet.create({
   radioButton: {
     marginHorizontal: "2%",
     borderWidth: 1,
-    borderColor: "black",
+    borderColor: "#B4B4B3",
     borderRadius: 10,
     padding: 10,
   },
   selectedG: {
-    backgroundColor: "green", // You can change the color to indicate selection
+    backgroundColor: "#7FCD91", // You can change the color to indicate selection
   },
   selectedS: {
-    backgroundColor: "yellow", // You can change the color to indicate selection
+    backgroundColor: "#FFA33C", // You can change the color to indicate selection
   },
   selectedN: {
-    backgroundColor: "red", // You can change the color to indicate selection
+    backgroundColor: "#FF6464", // You can change the color to indicate selection
   },
   checkicon: {
     width: 150,
@@ -682,10 +697,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   datafont: {
-    fontSize: 17,
+    fontSize: 14,
     fontFamily: "poppins-regular",
     marginBottom: 5,
-    fontWeight: "700",
+
     textAlign: "center",
   },
   header: {
@@ -734,6 +749,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flex: 1,
+
     // backgroundColor: "blue", // You can change the background color
     marginHorizontal: 5, // Adjust the horizontal margin as needed
     height: "100%", // This makes each column take up the full height of the row

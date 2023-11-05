@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Component, useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -7,6 +7,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Alert,
+  StatusBar,
 } from "react-native";
 import FeatherIcon from "react-native-vector-icons/Feather";
 import {
@@ -15,10 +17,92 @@ import {
 } from "react-native-responsive-screen";
 import { useNavigation } from "@react-navigation/native";
 
+import {
+  QuerySnapshot,
+  doc,
+  getDocs,
+  collection,
+  todoRef,
+  query,
+  orderBy,
+  limit,
+  where,
+} from "firebase/firestore";
+import { signInWithEmailAndPassword } from "firebase/auth"; // Modified import
+
+import { firebaseAuth, firebaseApp, firebase } from "../../firebaseConfig"; // Modified import
+
+import {
+  initializeAuth,
+  getReactNativePersistence,
+  getAuth,
+} from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 function Login(props) {
   const navigation = useNavigation();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    // Sign in the user
+    const userCredential = await signInWithEmailAndPassword(
+      firebaseAuth,
+      email,
+      password
+    );
+    let userData;
+    if (userCredential && userCredential.user && userCredential.user.email) {
+      const userEmail = userCredential.user.email;
+      const usersCollection = collection(firebase, "users"); // Replace 'users' with your collection name
+      const q = query(usersCollection, where("userEmail", "==", userEmail));
+      const querySnapshot = await getDocs(q);
+      // let userData;
+      querySnapshot.forEach((doc) => {
+        // Retrieve user data
+        userData = doc.data();
+        // userRole = userData.role;
+        console.log(userData); // Assuming 'role' is the field containing the role in your Firestore
+      });
+
+      // Navigate based on the user's role
+
+      // Navigate based on the user's role
+      // Move the navigation logic inside the asynchronous function
+      if (userData && userData.role) {
+        if (userData.role === "Staff") {
+          navigation.navigate("Drawermenu");
+        } else if (userData.role === "Head Admin") {
+          navigation.navigate("AdminDrawermenu");
+        } else {
+          Alert.alert("Error", "Role not defined");
+        }
+      } else {
+        Alert.alert("Error", "User data not found");
+      }
+    } else {
+      // Handle the case where userCredential doesn't contain the expected email information
+      console.error("Error: User email not found in userCredential");
+    }
+  };
+
+  // useEffect(() => {
+  //   const initializeFirebaseAuth = async () => {
+  //     try {
+  //       initializeAuth(firebaseAuth, {
+  //         persistence: getReactNativePersistence(AsyncStorage),
+  //       });
+  //     } catch (error) {
+  //       console.error("Firebase initialization error:", error);
+  //     }
+  //   };
+
+  //   initializeFirebaseAuth();
+  // }, []); // Empty dependency array ensures this runs only once after the component mounts
+
   return (
     <View style={styles.container}>
+      <StatusBar translucent={true} backgroundColor="transparent" />
       <ImageBackground
         source={require("../assets/images/bsu3.png")}
         resizeMode="cover"
@@ -40,6 +124,8 @@ function Login(props) {
                 <TextInput
                   placeholder="Username"
                   style={styles.username}
+                  value={email}
+                  onChangeText={(text) => setEmail(text)}
                 ></TextInput>
               </View>
             </View>
@@ -52,23 +138,15 @@ function Login(props) {
                     secureTextEntry={true}
                     placeholder="Password"
                     style={styles.password}
+                    value={password}
+                    onChangeText={(text) => setPassword(text)}
                   ></TextInput>
                 </View>
               </View>
             </View>
           </View>
           {/* <Text style={styles.forgotPassword}>Forgot Password?</Text> */}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              navigation.navigate("Drawermenu", {
-                screen: "AppNavigator",
-                params: {
-                  screen: "ViewS",
-                },
-              });
-            }}
-          >
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.logindbtn}>Login</Text>
           </TouchableOpacity>
         </View>

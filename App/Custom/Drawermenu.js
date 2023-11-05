@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -8,6 +8,8 @@ import {
   ImageBackground,
   Modal,
   Button,
+  Alert,
+  BackHandler,
 } from "react-native";
 import FeatherIcon from "react-native-vector-icons/Feather";
 import "react-native-gesture-handler";
@@ -16,7 +18,7 @@ import {
   DrawerContentScrollView,
   DrawerItemList,
 } from "@react-navigation/drawer";
-
+import { SvgUri } from "react-native-svg";
 import { NavigationContainer } from "@react-navigation/native";
 import Mapping from "../Pages/Mapping";
 import Bottomtabs from "./Bottomtabs";
@@ -38,50 +40,101 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useNavigation } from "@react-navigation/native";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import { useWindowDimensions } from "react-native";
 const Stack = createNativeStackNavigator();
 
 const Drawer = createDrawerNavigator();
 
-export default function Drawermenu() {
+export default function Drawermenu({ sessionToken }) {
   const navigation = useNavigation();
   const [showSubMenu1, setShowSubMenu1] = useState(false);
   const [showSubMenu2, setShowSubMenu2] = useState(false);
-  const [isModalVisible, setModalVisible] = useState(false); // State to control the modal
 
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible); // Function to toggle the modal visibility
-  };
   const handleLogout = () => {
-    // Implement your logout logic here .
-    // For example, you can clear the user's session or token.
-    // Then navigate to the login screen.
-    navigation.navigate("Login"); // Replace "Login" with your actual login screen name.
+    Alert.alert(
+      "Logout Confirmation",
+      "Are you sure you want to log out?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: "Confirm",
+          onPress: () => {
+            // Perform logout or go back to the login page as needed
+            // For instance, you might navigate back to the login page
+            navigation.navigate("Login");
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+    return true;
   };
+  useEffect(() => {
+    const backAction = () => {
+      if (navigation.isFocused()) {
+        Alert.alert(
+          "Logout Confirmation",
+          "Are you sure you want to log out?",
+          [
+            {
+              text: "Cancel",
+              onPress: () => null,
+              style: "cancel",
+            },
+            {
+              text: "Confirm",
+              onPress: () => {
+                // Perform logout or go back to the login page as needed
+                // For instance, you might navigate back to the login page
+                navigation.navigate("Login");
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+        return true; // Prevent default back button behavior
+      }
+    };
 
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove(); // Clean up the event listener on unmount
+  }, [navigation]);
   return (
     <NavigationContainer independent={true}>
       <Drawer.Navigator
         initialRouteName="MappingFe"
         drawerContent={(props) => {
           return (
-            <View>
+            <View style={{ flex: 1 }}>
               <ImageBackground
-                source={require("../assets/images/menu-bg9.png")}
-                style={{ padding: 20 }}
+                source={require("../assets/images/menu-bg10.jpg")}
+                style={{ padding: wp("1") }}
               >
                 <TouchableOpacity>
-                  <View style={{ alignSelf: "flex-end" }}>
-                    <FeatherIcon name="bell" size={22} color="white" />
+                  <View style={{ alignSelf: "flex-end", top: hp("6%") }}>
+                    <FeatherIcon name="bell" size={wp("2%")} color="white" />
                   </View>
                 </TouchableOpacity>
                 <View style={{ flexDirection: "row" }}>
                   <Image
-                    source={require("../assets/images/user-profile.jpg")}
+                    source={require("../assets/images/eqc_logo3.png")}
                     style={{
-                      height: 100,
-                      width: 100,
-                      borderRadius: 40,
-                      marginBottom: 10,
+                      height: hp("24%"),
+                      width: wp("14%"),
+                      left: wp("2%"),
+                      borderRadius: wp("10%"),
                       alignSelf: "center",
                     }}
                   />
@@ -89,50 +142,62 @@ export default function Drawermenu() {
                 <Text
                   style={{
                     color: "#fff",
-                    fontSize: 28,
+                    fontSize: wp("2%"),
                     fontFamily: "poppins-regular",
-                    marginBottom: 5,
+                    marginBottom: hp("1%"),
+                    left: wp("1.5%"),
                   }}
                 >
-                  EMU
+                  EquipCheck
                 </Text>
 
                 <View style={{ flexDirection: "row" }}>
                   <Text
                     style={{
                       textAlign: "center",
-                      fontSize: 16,
+                      fontSize: wp("1.5%"),
                       color: "#fff",
                       fontFamily: "poppins-regular",
-                      marginRight: 5,
+                      marginRight: wp("1%"),
+                      left: wp("1.5%"),
                     }}
                   >
                     STAFF
                   </Text>
                 </View>
               </ImageBackground>
-
-              <DrawerItemList {...props} />
+              <DrawerContentScrollView
+                {...props}
+                contentContainerStyle={{
+                  flexGrow: 1,
+                  top: 0,
+                  paddingTop: hp("-20%"),
+                }}
+              >
+                <DrawerItemList {...props} />
+              </DrawerContentScrollView>
               <TouchableOpacity
                 onPress={handleLogout}
                 style={{
                   flexDirection: "row",
                   alignItems: "flex-end",
-                  paddingVertical: 250,
-                  paddingHorizontal: 20,
+                  paddingVertical: hp("5%"),
+                  paddingHorizontal: wp("1%"),
+                  // left: wp("2%"),
                   borderTopColor: "#f4f4f4",
                   borderTopWidth: 1,
                 }}
               >
                 <FeatherIcon
                   name="log-out"
-                  size={20}
+                  left={wp("1%")}
+                  size={wp("1.5%")}
                   color="rgba(255,89,79,1)"
                 />
                 <Text
                   style={{
-                    marginLeft: 29,
-                    fontSize: 16,
+                    left: wp("3%"),
+                    fontSize: wp("1.3%"),
                     color: "rgba(255,89,79,1)",
                   }}
                 >
@@ -146,8 +211,11 @@ export default function Drawermenu() {
           headerTransparent: true,
           drawerStyle: {
             backgroundColor: "#fff",
-            width: 280,
+            width: wp("25%"),
+
+            // height: wp("105%"),
           },
+
           headerStyle: {
             backgroundColor: "red",
           },
@@ -168,15 +236,23 @@ export default function Drawermenu() {
             drawerIcon: () => (
               <FeatherIcon
                 name="map-pin"
-                size={20}
+                size={wp("1.5%")}
                 color="#808080"
               ></FeatherIcon>
             ),
+            drawerLabelStyle: {
+              color: "#454545",
+              fontSize: wp("1.3%"), // Adjust the font size as per your requirement
+            },
           }}
           component={AppNavigator4}
         />
         <Drawer.Screen
-          style={{ position: "absolute", bottom: 16, right: 16 }}
+          style={{
+            position: "absolute",
+            bottom: 16,
+            right: 16,
+          }}
           name="ViewEquipment"
           options={{
             drawerLabel: "View",
@@ -184,10 +260,14 @@ export default function Drawermenu() {
             drawerIcon: () => (
               <FeatherIcon
                 name="search"
-                size={20}
+                size={wp("1.5%")}
                 color="#808080"
               ></FeatherIcon>
             ),
+            drawerLabelStyle: {
+              color: "#454545",
+              fontSize: wp("1.3%"), // Adjust the font size as per your requirement
+            },
           }}
           component={AppNavigator}
         />
@@ -200,10 +280,14 @@ export default function Drawermenu() {
             drawerIcon: () => (
               <FeatherIcon
                 name="refresh-cw"
-                size={20}
+                size={wp("1.5%")}
                 color="#808080"
               ></FeatherIcon>
             ),
+            drawerLabelStyle: {
+              color: "#454545",
+              fontSize: wp("1.3%"), // Adjust the font size as per your requirement
+            },
           }}
           component={AppNavigator1}
         />
@@ -213,8 +297,16 @@ export default function Drawermenu() {
             drawerLabel: "History",
             title: null,
             drawerIcon: () => (
-              <FeatherIcon name="clock" size={20} color="#808080"></FeatherIcon>
+              <FeatherIcon
+                name="clock"
+                size={wp("1.5%")}
+                color="#808080"
+              ></FeatherIcon>
             ),
+            drawerLabelStyle: {
+              color: "#454545",
+              fontSize: wp("1.3%"), // Adjust the font size as per your requirement
+            },
           }}
           component={AppNavigator2}
         />
@@ -226,10 +318,14 @@ export default function Drawermenu() {
             drawerIcon: () => (
               <FeatherIcon
                 name="settings"
-                size={20}
+                size={wp("1.5%")}
                 color="#808080"
               ></FeatherIcon>
             ),
+            drawerLabelStyle: {
+              color: "#454545",
+              fontSize: wp("1.3%"), // Adjust the font size as per your requirement
+            },
           }}
           component={Setting}
         />
@@ -241,7 +337,7 @@ const styles = StyleSheet.create({
   subMenuItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    // padding: 16,
   },
   subMenuItemText: {
     marginLeft: 8,

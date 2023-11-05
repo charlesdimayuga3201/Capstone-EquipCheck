@@ -1,5 +1,12 @@
 import React, { Component, useState, useEffect } from "react";
-import { StyleSheet, View, Image, Text, FlatList } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Image,
+  Text,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Dropdown } from "react-native-element-dropdown";
 import { Picker } from "@react-native-picker/picker";
@@ -75,6 +82,7 @@ function ViewFe(props) {
       const Floors = [];
       const q = query(
         collection(firebase, "ListFireExtinguisher"),
+        orderBy("floor", "asc"),
         where("building", "==", selectedBuilding)
       );
       const querySnapshot = await getDocs(q);
@@ -166,6 +174,91 @@ function ViewFe(props) {
     fetchSafetyEquipmentData();
   }, [selectedSafetyEquipment]);
 
+  const refreshData = async () => {
+    try {
+      const Buildings = [];
+      const q = collection(firebase, "ListFireExtinguisher");
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (
+          data.building &&
+          !Buildings.some((item) => item.value === data.building)
+        ) {
+          Buildings.push({ label: data.building, value: data.building });
+        }
+      });
+      setBuildingOptions(Buildings);
+
+      const Floors = [];
+      const q1 = query(
+        collection(firebase, "ListFireExtinguisher"),
+        orderBy("floor", "asc"),
+        where("building", "==", selectedBuilding)
+      );
+      const querySnapshot1 = await getDocs(q1);
+
+      querySnapshot1.forEach((doc) => {
+        const data = doc.data();
+        if (data.floor && !Floors.some((item) => item.value === data.floor)) {
+          Floors.push({ label: data.floor, value: data.floor });
+        }
+      });
+      setFloorOptions(Floors);
+
+      const IDOptions = [];
+      const q2 = query(
+        collection(firebase, "ListFireExtinguisher"),
+        orderBy("number", "asc"),
+        where("building", "==", selectedBuilding),
+        where("floor", "==", selectedFloor)
+      );
+      const querySnapshot2 = await getDocs(q2);
+
+      querySnapshot2.forEach((doc) => {
+        const data = doc.data();
+        if (data.id && !IDOptions.some((item) => item.value === data.id)) {
+          IDOptions.push({ label: data.id, value: data.id });
+        }
+      });
+
+      setSafetyEquipmentOptions(IDOptions);
+
+      if (!selectedSafetyEquipment) {
+        return; // No need to fetch if safety equipment is not selected yet
+      }
+
+      const equipmentData = [];
+      // const selectedCollection =
+      //   safetyEquipmentCollections[selectedSafetyEquipment];
+      const selectedCollection = collection(firebase, selectedSafetyEquipment);
+      if (!selectedCollection) {
+        console.error(`Collection not found for ${selectedSafetyEquipment}`);
+        return;
+      }
+
+      const q3 = query(
+        selectedCollection,
+        // where("id", "==", selectedSafetyEquipment),
+        orderBy("date", "desc"),
+        orderBy("time", "desc"),
+        limit(1)
+      );
+
+      const querySnapshot3 = await getDocs(q3);
+
+      querySnapshot3.forEach((doc) => {
+        const data = doc.data();
+        equipmentData.push(data);
+      });
+
+      setSafetyEquipmentData(equipmentData);
+      console.log(equipmentData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
   return (
     <View style={styles.container}>
       <View style={styles.group}>
@@ -191,6 +284,18 @@ function ViewFe(props) {
             {" "}
             VIEW EQUIPMENT INFORMATION
           </Text>
+        </View>
+        <View style={{ alignItems: "center", marginTop: 20 }}>
+          <TouchableOpacity
+            onPress={refreshData}
+            style={{
+              backgroundColor: "#ED474A",
+              padding: 10,
+              borderRadius: 5,
+            }}
+          >
+            <Text style={{ color: "white", fontSize: 16 }}>Refresh</Text>
+          </TouchableOpacity>
         </View>
         {/* <View style={styles.line} /> */}
         <View
@@ -313,80 +418,86 @@ function ViewFe(props) {
 
         {/* Third container */}
         <View style={styles.container3}>
-          <View style={styles.column1}>
-            {safetyEquipmentData.map((item, index) => (
-              <Text key={index} style={styles.datafont1}>
-                {item.date}
-              </Text>
-            ))}
-          </View>
+          {selectedSafetyEquipment ? (
+            <>
+              <View style={styles.column1}>
+                {safetyEquipmentData.map((item, index) => (
+                  <Text key={index} style={styles.datafont1}>
+                    {item.date}
+                  </Text>
+                ))}
+              </View>
 
-          <View style={styles.column1}>
-            {safetyEquipmentData.map((item, index) => (
-              <Text key={index} style={styles.datafont1}>
-                {item.time}
-              </Text>
-            ))}
-          </View>
-          <View style={styles.column1}>
-            {safetyEquipmentData.map((item, index) => (
-              <Text key={index} style={styles.datafont1}>
-                {item.nozzle === "check" ? (
-                  // Use Ionicons for the check icon
-                  <Icon name="checkmark-circle" size={24} color="green" />
-                ) : (
-                  // Use Ionicons for the close icon
-                  <Icon name="close-circle" size={24} color="red" />
-                )}
-              </Text>
-            ))}
-          </View>
-          <View style={styles.column1}>
-            {safetyEquipmentData.map((item, index) => (
-              <Text key={index} style={styles.datafont1}>
-                {item.gauge === "check" ? (
-                  // Use Ionicons for the check icon
-                  <Icon name="checkmark-circle" size={24} color="green" />
-                ) : (
-                  // Use Ionicons for the close icon
-                  <Icon name="close-circle" size={24} color="red" />
-                )}
-              </Text>
-            ))}
-          </View>
-          <View style={styles.column1}>
-            {safetyEquipmentData.map((item, index) => (
-              <Text key={index} style={styles.datafont1}>
-                {item.pinlock === "check" ? (
-                  // Use Ionicons for the check icon
-                  <Icon name="checkmark-circle" size={24} color="green" />
-                ) : (
-                  // Use Ionicons for the close icon
-                  <Icon name="close-circle" size={24} color="red" />
-                )}
-              </Text>
-            ))}
-          </View>
-          <View style={styles.column1}>
-            {safetyEquipmentData.map((item, index) => (
-              <Text key={index} style={styles.datafont1}>
-                {item.body === "check" ? (
-                  // Use Ionicons for the check icon
-                  <Icon name="checkmark-circle" size={24} color="green" />
-                ) : (
-                  // Use Ionicons for the close icon
-                  <Icon name="close-circle" size={24} color="red" />
-                )}
-              </Text>
-            ))}
-          </View>
-          <View style={styles.column1}>
-            {safetyEquipmentData.map((item, index) => (
-              <Text key={index} style={styles.datafont1}>
-                {item.inspected}
-              </Text>
-            ))}
-          </View>
+              <View style={styles.column1}>
+                {safetyEquipmentData.map((item, index) => (
+                  <Text key={index} style={styles.datafont1}>
+                    {item.time}
+                  </Text>
+                ))}
+              </View>
+              <View style={styles.column1}>
+                {safetyEquipmentData.map((item, index) => (
+                  <Text key={index} style={styles.datafont1}>
+                    {item.nozzle === "check" ? (
+                      // Use Ionicons for the check icon
+                      <Icon name="checkmark-circle" size={24} color="green" />
+                    ) : (
+                      // Use Ionicons for the close icon
+                      <Icon name="close-circle" size={24} color="red" />
+                    )}
+                  </Text>
+                ))}
+              </View>
+              <View style={styles.column1}>
+                {safetyEquipmentData.map((item, index) => (
+                  <Text key={index} style={styles.datafont1}>
+                    {item.gauge === "check" ? (
+                      // Use Ionicons for the check icon
+                      <Icon name="checkmark-circle" size={24} color="green" />
+                    ) : (
+                      // Use Ionicons for the close icon
+                      <Icon name="close-circle" size={24} color="red" />
+                    )}
+                  </Text>
+                ))}
+              </View>
+              <View style={styles.column1}>
+                {safetyEquipmentData.map((item, index) => (
+                  <Text key={index} style={styles.datafont1}>
+                    {item.pinlock === "check" ? (
+                      // Use Ionicons for the check icon
+                      <Icon name="checkmark-circle" size={24} color="green" />
+                    ) : (
+                      // Use Ionicons for the close icon
+                      <Icon name="close-circle" size={24} color="red" />
+                    )}
+                  </Text>
+                ))}
+              </View>
+              <View style={styles.column1}>
+                {safetyEquipmentData.map((item, index) => (
+                  <Text key={index} style={styles.datafont1}>
+                    {item.body === "check" ? (
+                      // Use Ionicons for the check icon
+                      <Icon name="checkmark-circle" size={24} color="green" />
+                    ) : (
+                      // Use Ionicons for the close icon
+                      <Icon name="close-circle" size={24} color="red" />
+                    )}
+                  </Text>
+                ))}
+              </View>
+              <View style={styles.column1}>
+                {safetyEquipmentData.map((item, index) => (
+                  <Text key={index} style={styles.datafont1}>
+                    {item.inspected}
+                  </Text>
+                ))}
+              </View>
+            </>
+          ) : (
+            <Text></Text>
+          )}
         </View>
       </View>
     </View>
